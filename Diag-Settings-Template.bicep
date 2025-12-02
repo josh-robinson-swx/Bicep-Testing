@@ -7,6 +7,7 @@ var policyDescription = 'This policy automatically deploys and enables diagnosti
 var keyVaultPolicyName = 'SWX-Diagnostic-Settings-KeyVault'
 var nsgPolicyName = 'SWX-Diagnostic-Settings-NSG'
 
+// Key Vault Policy Definition
 resource keyVaultPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-01' = {
   name: keyVaultPolicyName
   properties: {
@@ -75,6 +76,7 @@ resource keyVaultPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-01' =
   }
 }
 
+// NSG Policy Definition
 resource nsgPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-01' = {
   name: nsgPolicyName
   properties: {
