@@ -12,7 +12,9 @@ resource keyVaultPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-01' =
   properties: {
     displayName: keyVaultPolicyName
     description: policyDescription
-    metadata: { category: 'Monitoring' }
+    metadata: {
+      category: 'Monitoring'
+    }
     mode: 'all'
     parameters: {
       logAnalytics: {
@@ -41,32 +43,29 @@ resource keyVaultPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-01' =
             properties: {
               mode: 'incremental'
               template: {
-                '$schema': 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#'
-                contentVersion: '1.0.0.0'
-                parameters: {
-                  resourceName: { type: 'string' }
-                  logAnalytics: { type: 'string' }
-                  location: { type: 'string' }
-                }
-                resources: [
-                  {
-                    type: 'Microsoft.KeyVault/vaults/providers/diagnosticSettings'
-                    apiVersion: '2021-05-01-preview'
-                    name: '[concat(parameters(''resourceName''), ''/Microsoft.Insights/SWXDiagnostics'')]'
-                    location: '[parameters(''location'')]'
-                    properties: {
-                      workspaceId: '[parameters(''logAnalytics'')]'
-                      logs: [
-                        { categoryGroup: 'audit', enabled: true }
-                      ]
-                    }
+                targetScope: 'resource'
+                param resourceName string
+                param location string
+                param logAnalytics string
+
+                resource diag 'Microsoft.KeyVault/vaults/providers/diagnosticSettings@2021-05-01-preview' = {
+                  name: '${resourceName}/Microsoft.Insights/SWXDiagnostics'
+                  location: location
+                  properties: {
+                    workspaceId: logAnalytics
+                    logs: [
+                      {
+                        categoryGroup: 'audit'
+                        enabled: true
+                      }
+                    ]
                   }
-                ]
+                }
               }
               parameters: {
-                logAnalytics: { value: "[parameters('logAnalytics')]" }
-                location: { value: "[field('location')]" }
-                resourceName: { value: "[field('name')]" }
+                resourceName: "[field('name')]"
+                location: "[field('location')]"
+                logAnalytics: logAnalytics
               }
             }
           }
@@ -81,7 +80,9 @@ resource nsgPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-01' = {
   properties: {
     displayName: nsgPolicyName
     description: policyDescription
-    metadata: { category: 'Monitoring' }
+    metadata: {
+      category: 'Monitoring'
+    }
     mode: 'all'
     parameters: {
       logAnalytics: {
@@ -110,32 +111,29 @@ resource nsgPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-01' = {
             properties: {
               mode: 'incremental'
               template: {
-                '$schema': 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#'
-                contentVersion: '1.0.0.0'
-                parameters: {
-                  resourceName: { type: 'string' }
-                  logAnalytics: { type: 'string' }
-                  location: { type: 'string' }
-                }
-                resources: [
-                  {
-                    type: 'Microsoft.Network/networkSecurityGroups/providers/diagnosticSettings'
-                    apiVersion: '2021-05-01-preview'
-                    name: '[concat(parameters(''resourceName''), ''/Microsoft.Insights/SWXDiagnostics'')]'
-                    location: '[parameters(''location'')]'
-                    properties: {
-                      workspaceId: '[parameters(''logAnalytics'')]'
-                      logs: [
-                        { category: 'NetworkSecurityGroupEvent', enabled: true }
-                      ]
-                    }
+                targetScope: 'resource'
+                param resourceName string
+                param location string
+                param logAnalytics string
+
+                resource diag 'Microsoft.Network/networkSecurityGroups/providers/diagnosticSettings@2021-05-01-preview' = {
+                  name: '${resourceName}/Microsoft.Insights/SWXDiagnostics'
+                  location: location
+                  properties: {
+                    workspaceId: logAnalytics
+                    logs: [
+                      {
+                        category: 'NetworkSecurityGroupEvent'
+                        enabled: true
+                      }
+                    ]
                   }
-                ]
+                }
               }
               parameters: {
-                logAnalytics: { value: "[parameters('logAnalytics')]" }
-                location: { value: "[field('location')]" }
-                resourceName: { value: "[field('name')]" }
+                resourceName: "[field('name')]"
+                location: "[field('location')]"
+                logAnalytics: logAnalytics
               }
             }
           }
