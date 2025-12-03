@@ -1,25 +1,64 @@
 targetScope = 'subscription'
 
-@description('Log Analytics Workspace Resource ID')
-param logAnalytics string
+@description('Policy definition name')
+param policyDefinitionName string = 'SWX-DiagnosticSettings-KeyVault'
 
-var policyName = 'SWX-Diag-Settings-KV'
+@description('Log Analytics workspace resource ID')
+param logAnalyticsWorkspaceId string
 
-resource keyVaultDiagPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-01' = {
-  name: policyName
-  properties: {
-    displayName: policyName
-    description: 'Deploy diagnostic settings for Key Vaults to Log Analytics if not present'
-    metadata: {
-      category: 'Monitoring'
+var deployTemplate = json('''
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logAnalyticsWorkspaceId": {
+      "type": "string"
     }
-    mode: 'All'
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/diagnosticSettings",
+      "apiVersion": "2021-05-01-preview",
+      "name": "SWXDiagnostics",
+      "properties": {
+        "workspaceId": "[parameters('logAnalyticsWorkspaceId')]",
+        "logs": [
+          {
+            "categoryGroup": "audit",
+            "enabled": true
+          },
+          {
+            "categoryGroup": "allLogs",
+            "enabled": true
+          }
+        ],
+        "metrics": [
+          {
+            "category": "AllMetrics",
+            "enabled": false
+          }
+        ]
+      }
+    }
+  ]
+}
+''')
+
+resource policyDef 'Microsoft.Authorization/policyDefinitions@2021-06-01' = {
+  name: policyDefinitionName
+  properties: {
+    policyType: 'Custom'
+    mode: 'Indexed'
+    displayName: policyDefinitionName
+    description: 'This policy automatically deploys and enables diagnostic settings to send to a Log Analytics workspace'
+    metadata: {
+      category: 'Key Vault'
+    }
     parameters: {
-      logAnalytics: {
+      logAnalyticsWorkspaceId: {
         type: 'String'
         metadata: {
-          displayName: 'Log Analytics Workspace'
-          description: 'Resource ID of the Log Analytics Workspace'
+          displayName: 'Log Analytics Workspace Resource ID'
         }
       }
     }
@@ -32,44 +71,22 @@ resource keyVaultDiagPolicy 'Microsoft.Authorization/policyDefinitions@2021-06-0
         effect: 'deployIfNotExists'
         details: {
           type: 'Microsoft.Insights/diagnosticSettings'
+          name: 'SWXDiagnostics'
+          existenceCondition: {
+            field: 'name'
+            equals: 'SWXDiagnostics'
+          }
           roleDefinitionIds: [
-            '/providers/Microsoft.Authorization/roleDefinitions/749f88d5-cbae-40b8-bcfc-e573ddc772fa'
-            '/providers/Microsoft.Authorization/roleDefinitions/92aaf0da-9dab-42b6-94a3-d43ce8d16293'
+            '/providers/microsoft.authorization/roleDefinitions/f526a384-b230-433c-b45c-95f59c4a2dec'
           ]
           deployment: {
             properties: {
               mode: 'incremental'
-              template: {
-                $schema: 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#'
-                contentVersion: '1.0.0.0'
-                parameters: {
-                  resourceName: {
-                    type: 'string'
-                  }
-                  logAnalytics: {
-                    type: 'string'
-                  }
-                }
-                resources: [
-                  {
-                    type: 'Microsoft.KeyVault/vaults/providers/diagnosticSettings'
-                    apiVersion: '2021-05-01-preview'
-                    name: '[concat(parameters('resourceName'), '/Microsoft.Insights/SWXDiagnostics')]'
-                    properties: {
-                      workspaceId: '[parameters('logAnalytics')]'
-                      logs: [
-                        {
-                          categoryGroup: 'audit'
-                          enabled: true
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
+              template: deployTemplate
               parameters: {
-                resourceName: "[field('name')]"
-                logAnalytics: logAnalytics
+                logAnalyticsWorkspaceId: {
+                  value: logAnalyticsWorkspaceId
+                }
               }
             }
           }
