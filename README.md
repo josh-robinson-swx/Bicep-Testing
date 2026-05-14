@@ -1,2 +1,1 @@
-# Bicep-Testing
-Repo for Bicep templates &amp; Testing
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjosh-robinson-swx%2FBicep-Testing%2Fmain%2FDiag-Settings-Template.json)
