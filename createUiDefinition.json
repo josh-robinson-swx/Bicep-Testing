@@ -73,7 +73,6 @@
         ],
         "outputs": {
             "workspaceName": "[basics('workspaceName')]",
-            "location": "[location()]",
             "enableDiagnosticPolicies": "[union(if(steps('diagnosticPolicies').enableKeyVault, array('AzureKeyVault'), array()), if(steps('diagnosticPolicies').enableNSG, array('AzureNetworkSecurityGroup'), array()), if(steps('diagnosticPolicies').enableStorage, array('AzureStorageAccount'), array()), if(steps('diagnosticPolicies').enableSQL, array('AzureSqlDatabase'), array()))]"
         }
     }
