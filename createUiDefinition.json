@@ -3,21 +3,31 @@
     "handler": "Microsoft.Azure.CreateUIDef",
     "version": "0.1.2-preview",
     "parameters": {
+        "config": {
+            "isWizard": false,
+            "basics": {
+                "description": "Deploy Azure Policy to automatically apply diagnostic settings to your Azure resources, forwarding logs to a Log Analytics workspace.",
+                "location": {
+                    "label": "Location",
+                    "toolTip": "Location for all resources",
+                    "resourceTypes": [
+                        "Microsoft.OperationalInsights/workspaces"
+                    ]
+                }
+            }
+        },
         "basics": [
             {
                 "name": "workspaceName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Log Analytics Workspace Name",
-                "placeholder": "my-log-analytics-workspace",
-                "toolTip": "The name of the existing Log Analytics workspace that diagnostic logs will be sent to.",
+                "placeholder": "",
+                "defaultValue": "",
+                "toolTip": "The name of the existing Log Analytics workspace that diagnostic logs will be sent to. Must be 4-63 characters.",
                 "constraints": {
                     "required": true,
-                    "validations": [
-                        {
-                            "regex": "^[a-zA-Z0-9-_]{4,63}$",
-                            "message": "Workspace name must be between 4 and 63 characters and can only contain letters, numbers, hyphens, and underscores."
-                        }
-                    ]
+                    "regex": "^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$",
+                    "validationMessage": "Only alphanumeric characters and hyphens are allowed, and the value must be 4-63 characters long."
                 },
                 "visible": true
             }
@@ -28,44 +38,49 @@
                 "label": "Diagnostic Settings",
                 "elements": [
                     {
-                        "name": "infoBox",
+                        "name": "infoBoxDiagnostics",
                         "type": "Microsoft.Common.InfoBox",
                         "visible": true,
                         "options": {
                             "icon": "Info",
-                            "text": "Select the resource types you want to automatically apply diagnostic settings to. Policies will be assigned at subscription scope, meaning any new resources of the selected types will also have diagnostic settings applied automatically."
+                            "text": "Select which resource types you want to automatically apply diagnostic settings to. Azure Policy assignments will be created at subscription scope, meaning any new resources of the selected types will also have diagnostic settings applied automatically. A remediation task will also run to catch any existing non-compliant resources. Requires Owner on the subscription."
                         }
                     },
                     {
-                        "name": "enableKeyVault",
-                        "type": "Microsoft.Common.CheckBox",
-                        "label": "Azure Key Vault",
-                        "toolTip": "Enables diagnostic settings for Key Vault, capturing AuditEvent logs.",
-                        "defaultValue": false,
-                        "visible": true
-                    },
-                    {
-                        "name": "enableNSG",
-                        "type": "Microsoft.Common.CheckBox",
-                        "label": "Network Security Groups (NSG)",
-                        "toolTip": "Enables diagnostic settings for NSGs, capturing NetworkSecurityGroupEvent and NetworkSecurityGroupRuleCounter logs.",
-                        "defaultValue": false,
-                        "visible": true
-                    },
-                    {
-                        "name": "enableStorage",
-                        "type": "Microsoft.Common.CheckBox",
-                        "label": "Storage Accounts",
-                        "toolTip": "Enables diagnostic settings for Storage Accounts, capturing read, write, and delete logs for blob, queue, table, and file services.",
-                        "defaultValue": false,
-                        "visible": true
-                    },
-                    {
-                        "name": "enableSQL",
-                        "type": "Microsoft.Common.CheckBox",
-                        "label": "SQL Databases",
-                        "toolTip": "Enables diagnostic settings for SQL Databases (excluding master), capturing security audit events, errors, timeouts, blocks, and deadlocks.",
-                        "defaultValue": false,
+                        "name": "enableDiagnosticPolicies",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "Select resource types to enable diagnostic settings for",
+                        "placeholder": "",
+                        "multiselect": true,
+                        "filter": true,
+                        "filterPlaceholder": "Filter items ...",
+                        "multiLine": true,
+                        "toolTip": "Diagnostic settings will be configured on all matching resources found in your subscription at deployment time.",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "Azure Key Vault",
+                                    "description": "Enables AuditEvent diagnostic logs on all Key Vaults in the subscription, forwarding to the Log Analytics workspace.",
+                                    "value": "AzureKeyVault"
+                                },
+                                {
+                                    "label": "Azure Network Security Groups",
+                                    "description": "Enables NetworkSecurityGroupEvent and NetworkSecurityGroupRuleCounter logs on all NSGs in the subscription.",
+                                    "value": "AzureNetworkSecurityGroup"
+                                },
+                                {
+                                    "label": "Azure Storage Accounts",
+                                    "description": "Enables StorageRead, StorageWrite and StorageDelete logs on blob, queue, table and file services for all Storage Accounts in the subscription.",
+                                    "value": "AzureStorageAccount"
+                                },
+                                {
+                                    "label": "Azure SQL Databases",
+                                    "description": "Enables SQLSecurityAuditEvents, SQLInsights, Errors, Timeouts, Blocks and Deadlocks logs on all SQL Databases in the subscription.",
+                                    "value": "AzureSqlDatabase"
+                                }
+                            ],
+                            "required": false
+                        },
                         "visible": true
                     }
                 ]
@@ -73,7 +88,8 @@
         ],
         "outputs": {
             "workspaceName": "[basics('workspaceName')]",
-            "enableDiagnosticPolicies": "[filter(parse('[\"AzureKeyVault\",\"AzureNetworkSecurityGroup\",\"AzureStorageAccount\",\"AzureSqlDatabase\"]'), lambda(item, or(and(equals(item, 'AzureKeyVault'), steps('diagnosticPolicies').enableKeyVault), and(equals(item, 'AzureNetworkSecurityGroup'), steps('diagnosticPolicies').enableNSG), and(equals(item, 'AzureStorageAccount'), steps('diagnosticPolicies').enableStorage), and(equals(item, 'AzureSqlDatabase'), steps('diagnosticPolicies').enableSQL))))]"
+            "location": "[location()]",
+            "enableDiagnosticPolicies": "[steps('diagnosticPolicies').enableDiagnosticPolicies]"
         }
     }
 }
