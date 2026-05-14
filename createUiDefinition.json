@@ -73,7 +73,7 @@
         ],
         "outputs": {
             "workspaceName": "[basics('workspaceName')]",
-            "enableDiagnosticPolicies": "[union(if(steps('diagnosticPolicies').enableKeyVault, array('AzureKeyVault'), array()), if(steps('diagnosticPolicies').enableNSG, array('AzureNetworkSecurityGroup'), array()), if(steps('diagnosticPolicies').enableStorage, array('AzureStorageAccount'), array()), if(steps('diagnosticPolicies').enableSQL, array('AzureSqlDatabase'), array()))]"
+            "enableDiagnosticPolicies": "[filter(parse('[\"AzureKeyVault\",\"AzureNetworkSecurityGroup\",\"AzureStorageAccount\",\"AzureSqlDatabase\"]'), lambda(item, or(and(equals(item, 'AzureKeyVault'), steps('diagnosticPolicies').enableKeyVault), and(equals(item, 'AzureNetworkSecurityGroup'), steps('diagnosticPolicies').enableNSG), and(equals(item, 'AzureStorageAccount'), steps('diagnosticPolicies').enableStorage), and(equals(item, 'AzureSqlDatabase'), steps('diagnosticPolicies').enableSQL))))]"
         }
     }
 }
