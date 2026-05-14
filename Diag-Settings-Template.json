@@ -6,7 +6,8 @@
             "type": "string"
         },
         "location": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "[deployment().location]"
         },
         "enableDiagnosticPolicies": {
             "type": "array",
@@ -38,14 +39,14 @@
                     },
                     "variables": {
                         "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
-                        "kvPolicyName":      "[guid(subscription().id, 'SWX-sentinel-kv-diag-policy')]",
-                        "nsgPolicyName":     "[guid(subscription().id, 'SWX-sentinel-nsg-diag-policy')]",
-                        "storagePolicyName": "[guid(subscription().id, 'SWX-sentinel-storage-diag-policy')]",
-                        "sqlPolicyName":     "[guid(subscription().id, 'SWX-sentinel-sql-diag-policy')]",
-                        "kvAssignName":      "[guid(subscription().id, 'SWX-sentinel-kv-diag-assign')]",
-                        "nsgAssignName":     "[guid(subscription().id, 'SWX-sentinel-nsg-diag-assign')]",
-                        "storageAssignName": "[guid(subscription().id, 'SWX-sentinel-storage-diag-assign')]",
-                        "sqlAssignName":     "[guid(subscription().id, 'SWXsentinel-sql-diag-assign')]"
+                        "kvPolicyName":      "[guid(subscription().id, 'sentinel-kv-diag-policy')]",
+                        "nsgPolicyName":     "[guid(subscription().id, 'sentinel-nsg-diag-policy')]",
+                        "storagePolicyName": "[guid(subscription().id, 'sentinel-storage-diag-policy')]",
+                        "sqlPolicyName":     "[guid(subscription().id, 'sentinel-sql-diag-policy')]",
+                        "kvAssignName":      "[guid(subscription().id, 'sentinel-kv-diag-assign')]",
+                        "nsgAssignName":     "[guid(subscription().id, 'sentinel-nsg-diag-assign')]",
+                        "storageAssignName": "[guid(subscription().id, 'sentinel-storage-diag-assign')]",
+                        "sqlAssignName":     "[guid(subscription().id, 'sentinel-sql-diag-assign')]"
                     },
                     "resources": [
 
