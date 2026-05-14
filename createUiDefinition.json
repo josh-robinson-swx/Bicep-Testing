@@ -1,1 +1,105 @@
-
+{
+    "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+    "handler": "Microsoft.Azure.CreateUIDef",
+    "version": "0.1.2-preview",
+    "parameters": {
+        "basics": [
+            {
+                "name": "workspaceName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Log Analytics Workspace Name",
+                "placeholder": "my-log-analytics-workspace",
+                "toolTip": "The name of the existing Log Analytics workspace that diagnostic logs will be sent to.",
+                "constraints": {
+                    "required": true,
+                    "validations": [
+                        {
+                            "regex": "^[a-zA-Z0-9-_]{4,63}$",
+                            "message": "Workspace name must be between 4 and 63 characters and can only contain letters, numbers, hyphens, and underscores."
+                        }
+                    ]
+                },
+                "visible": true
+            },
+            {
+                "name": "location",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Region",
+                "toolTip": "The Azure region to deploy the policy resources into.",
+                "defaultValue": "UK South",
+                "constraints": {
+                    "required": true,
+                    "allowedValues": [
+                        { "label": "UK South",          "value": "uksouth" },
+                        { "label": "UK West",           "value": "ukwest" },
+                        { "label": "West Europe",       "value": "westeurope" },
+                        { "label": "North Europe",      "value": "northeurope" },
+                        { "label": "East US",           "value": "eastus" },
+                        { "label": "East US 2",         "value": "eastus2" },
+                        { "label": "West US",           "value": "westus" },
+                        { "label": "West US 2",         "value": "westus2" },
+                        { "label": "Central US",        "value": "centralus" },
+                        { "label": "Australia East",    "value": "australiaeast" },
+                        { "label": "Southeast Asia",    "value": "southeastasia" },
+                        { "label": "East Asia",         "value": "eastasia" }
+                    ]
+                },
+                "visible": true
+            }
+        ],
+        "steps": [
+            {
+                "name": "diagnosticPolicies",
+                "label": "Diagnostic Settings",
+                "elements": [
+                    {
+                        "name": "infoBox",
+                        "type": "Microsoft.Common.InfoBox",
+                        "visible": true,
+                        "options": {
+                            "icon": "Info",
+                            "text": "Select the resource types you want to automatically apply diagnostic settings to. Policies will be assigned at subscription scope, meaning any new resources of the selected types will also have diagnostic settings applied automatically."
+                        }
+                    },
+                    {
+                        "name": "enableKeyVault",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Azure Key Vault",
+                        "toolTip": "Enables diagnostic settings for Key Vault, capturing AuditEvent logs.",
+                        "defaultValue": false,
+                        "visible": true
+                    },
+                    {
+                        "name": "enableNSG",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Network Security Groups (NSG)",
+                        "toolTip": "Enables diagnostic settings for NSGs, capturing NetworkSecurityGroupEvent and NetworkSecurityGroupRuleCounter logs.",
+                        "defaultValue": false,
+                        "visible": true
+                    },
+                    {
+                        "name": "enableStorage",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Storage Accounts",
+                        "toolTip": "Enables diagnostic settings for Storage Accounts, capturing read, write, and delete logs for blob, queue, table, and file services.",
+                        "defaultValue": false,
+                        "visible": true
+                    },
+                    {
+                        "name": "enableSQL",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "SQL Databases",
+                        "toolTip": "Enables diagnostic settings for SQL Databases (excluding master), capturing security audit events, errors, timeouts, blocks, and deadlocks.",
+                        "defaultValue": false,
+                        "visible": true
+                    }
+                ]
+            }
+        ],
+        "outputs": {
+            "workspaceName": "[basics('workspaceName')]",
+            "location": "[basics('location')]",
+            "enableDiagnosticPolicies": "[union(if(steps('diagnosticPolicies').enableKeyVault, array('AzureKeyVault'), array()), if(steps('diagnosticPolicies').enableNSG, array('AzureNetworkSecurityGroup'), array()), if(steps('diagnosticPolicies').enableStorage, array('AzureStorageAccount'), array()), if(steps('diagnosticPolicies').enableSQL, array('AzureSqlDatabase'), array()))]"
+        }
+    }
+}
