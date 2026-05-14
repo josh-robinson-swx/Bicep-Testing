@@ -20,31 +20,6 @@
                     ]
                 },
                 "visible": true
-            },
-            {
-                "name": "location",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Region",
-                "toolTip": "The Azure region to deploy the policy resources into.",
-                "defaultValue": "UK South",
-                "constraints": {
-                    "required": true,
-                    "allowedValues": [
-                        { "label": "UK South",          "value": "uksouth" },
-                        { "label": "UK West",           "value": "ukwest" },
-                        { "label": "West Europe",       "value": "westeurope" },
-                        { "label": "North Europe",      "value": "northeurope" },
-                        { "label": "East US",           "value": "eastus" },
-                        { "label": "East US 2",         "value": "eastus2" },
-                        { "label": "West US",           "value": "westus" },
-                        { "label": "West US 2",         "value": "westus2" },
-                        { "label": "Central US",        "value": "centralus" },
-                        { "label": "Australia East",    "value": "australiaeast" },
-                        { "label": "Southeast Asia",    "value": "southeastasia" },
-                        { "label": "East Asia",         "value": "eastasia" }
-                    ]
-                },
-                "visible": true
             }
         ],
         "steps": [
@@ -98,7 +73,7 @@
         ],
         "outputs": {
             "workspaceName": "[basics('workspaceName')]",
-            "location": "[basics('location')]",
+            "location": "[location()]",
             "enableDiagnosticPolicies": "[union(if(steps('diagnosticPolicies').enableKeyVault, array('AzureKeyVault'), array()), if(steps('diagnosticPolicies').enableNSG, array('AzureNetworkSecurityGroup'), array()), if(steps('diagnosticPolicies').enableStorage, array('AzureStorageAccount'), array()), if(steps('diagnosticPolicies').enableSQL, array('AzureSqlDatabase'), array()))]"
         }
     }
