@@ -11,6 +11,22 @@
         "enableDiagnosticPolicies": {
             "type": "array",
             "defaultValue": []
+        },
+        "excludeKeyVaultResources": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "excludeNsgResources": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "excludeStorageResources": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "excludeSqlResources": {
+            "type": "array",
+            "defaultValue": []
         }
     },
     "variables": {
@@ -34,7 +50,11 @@
                     "parameters": {
                         "workspaceId": { "type": "string" },
                         "location": { "type": "string" },
-                        "enableDiagnosticPolicies": { "type": "array" }
+                        "enableDiagnosticPolicies": { "type": "array" },
+                        "excludeKeyVaultResources": { "type": "array" },
+                        "excludeNsgResources": { "type": "array" },
+                        "excludeStorageResources": { "type": "array" },
+                        "excludeSqlResources": { "type": "array" }
                     },
                     "variables": {
                         "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
@@ -49,15 +69,13 @@
                     },
                     "resources": [
 
-                        // ── KEY VAULT ──────────────────────────────────────────────────────────
-
                         {
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureKeyVault')]",
                             "type": "Microsoft.Authorization/policyDefinitions",
                             "apiVersion": "2021-06-01",
                             "name": "[variables('kvPolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for Key Vault",
+                                "displayName": "SWX Sentinel - Deploy diagnostic settings for Key Vault",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -122,7 +140,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - Key Vault diagnostic settings",
+                                "displayName": "SWX Sentinel - Key Vault diagnostic settings",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('kvPolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -159,8 +177,60 @@
                                 "[guid(variables('kvAssignName'), variables('contributorRoleId'))]"
                             ]
                         },
-
-                        // ── NETWORK SECURITY GROUPS ────────────────────────────────────────────
+                        {
+                            "condition": "[and(contains(parameters('enableDiagnosticPolicies'), 'AzureKeyVault'), greater(length(parameters('excludeKeyVaultResources')), 0))]",
+                            "type": "Microsoft.Resources/deployments",
+                            "apiVersion": "2021-04-01",
+                            "name": "kvExemptionsDeployment",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "mode": "Incremental",
+                                "expressionEvaluationOptions": { "scope": "inner" },
+                                "template": {
+                                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                                    "contentVersion": "1.0.0.0",
+                                    "parameters": {
+                                        "excludeResources": { "type": "array" },
+                                        "kvAssignName": { "type": "string" }
+                                    },
+                                    "resources": [
+                                        {
+                                            "copy": {
+                                                "name": "kvExemptionsCopy",
+                                                "count": "[length(parameters('excludeResources'))]"
+                                            },
+                                            "type": "Microsoft.Authorization/policyExemptions",
+                                            "apiVersion": "2022-07-01-preview",
+                                            "name": "[concat('swx-kv-exempt-', parameters('excludeResources')[copyIndex()])]",
+                                            "properties": {
+                                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('kvAssignName'))]",
+                                                "exemptionCategory": "Waiver",
+                                                "displayName": "[concat('SWX Sentinel - Key Vault exemption: ', parameters('excludeResources')[copyIndex()])]",
+                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time.",
+                                                "resourceSelectors": [
+                                                    {
+                                                        "name": "resourceSelector",
+                                                        "selectors": [
+                                                            {
+                                                                "kind": "resourceWithoutLocation",
+                                                                "in": "[array(parameters('excludeResources')[copyIndex()])]"
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                "parameters": {
+                                    "excludeResources": { "value": "[parameters('excludeKeyVaultResources')]" },
+                                    "kvAssignName": { "value": "[variables('kvAssignName')]" }
+                                }
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('kvAssignName'))]"
+                            ]
+                        },
 
                         {
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureNetworkSecurityGroup')]",
@@ -168,7 +238,7 @@
                             "apiVersion": "2021-06-01",
                             "name": "[variables('nsgPolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for NSG",
+                                "displayName": "SWX Sentinel - Deploy diagnostic settings for NSG",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -234,7 +304,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - NSG diagnostic settings",
+                                "displayName": "SWX Sentinel - NSG diagnostic settings",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('nsgPolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -271,8 +341,60 @@
                                 "[guid(variables('nsgAssignName'), variables('contributorRoleId'))]"
                             ]
                         },
-
-                        // ── STORAGE ACCOUNTS ───────────────────────────────────────────────────
+                        {
+                            "condition": "[and(contains(parameters('enableDiagnosticPolicies'), 'AzureNetworkSecurityGroup'), greater(length(parameters('excludeNsgResources')), 0))]",
+                            "type": "Microsoft.Resources/deployments",
+                            "apiVersion": "2021-04-01",
+                            "name": "nsgExemptionsDeployment",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "mode": "Incremental",
+                                "expressionEvaluationOptions": { "scope": "inner" },
+                                "template": {
+                                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                                    "contentVersion": "1.0.0.0",
+                                    "parameters": {
+                                        "excludeResources": { "type": "array" },
+                                        "nsgAssignName": { "type": "string" }
+                                    },
+                                    "resources": [
+                                        {
+                                            "copy": {
+                                                "name": "nsgExemptionsCopy",
+                                                "count": "[length(parameters('excludeResources'))]"
+                                            },
+                                            "type": "Microsoft.Authorization/policyExemptions",
+                                            "apiVersion": "2022-07-01-preview",
+                                            "name": "[concat('swx-nsg-exempt-', parameters('excludeResources')[copyIndex()])]",
+                                            "properties": {
+                                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('nsgAssignName'))]",
+                                                "exemptionCategory": "Waiver",
+                                                "displayName": "[concat('SWX Sentinel - NSG exemption: ', parameters('excludeResources')[copyIndex()])]",
+                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time.",
+                                                "resourceSelectors": [
+                                                    {
+                                                        "name": "resourceSelector",
+                                                        "selectors": [
+                                                            {
+                                                                "kind": "resourceWithoutLocation",
+                                                                "in": "[array(parameters('excludeResources')[copyIndex()])]"
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                "parameters": {
+                                    "excludeResources": { "value": "[parameters('excludeNsgResources')]" },
+                                    "nsgAssignName": { "value": "[variables('nsgAssignName')]" }
+                                }
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('nsgAssignName'))]"
+                            ]
+                        },
 
                         {
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureStorageAccount')]",
@@ -280,7 +402,7 @@
                             "apiVersion": "2021-06-01",
                             "name": "[variables('storagePolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for Storage Account",
+                                "displayName": "SWX Sentinel - Deploy diagnostic settings for Storage Account",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -405,7 +527,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - Storage Account diagnostic settings",
+                                "displayName": "SWX Sentinel - Storage Account diagnostic settings",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('storagePolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -442,8 +564,60 @@
                                 "[guid(variables('storageAssignName'), variables('contributorRoleId'))]"
                             ]
                         },
-
-                        // ── SQL DATABASES ──────────────────────────────────────────────────────
+                        {
+                            "condition": "[and(contains(parameters('enableDiagnosticPolicies'), 'AzureStorageAccount'), greater(length(parameters('excludeStorageResources')), 0))]",
+                            "type": "Microsoft.Resources/deployments",
+                            "apiVersion": "2021-04-01",
+                            "name": "storageExemptionsDeployment",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "mode": "Incremental",
+                                "expressionEvaluationOptions": { "scope": "inner" },
+                                "template": {
+                                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                                    "contentVersion": "1.0.0.0",
+                                    "parameters": {
+                                        "excludeResources": { "type": "array" },
+                                        "storageAssignName": { "type": "string" }
+                                    },
+                                    "resources": [
+                                        {
+                                            "copy": {
+                                                "name": "storageExemptionsCopy",
+                                                "count": "[length(parameters('excludeResources'))]"
+                                            },
+                                            "type": "Microsoft.Authorization/policyExemptions",
+                                            "apiVersion": "2022-07-01-preview",
+                                            "name": "[concat('swx-storage-exempt-', parameters('excludeResources')[copyIndex()])]",
+                                            "properties": {
+                                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('storageAssignName'))]",
+                                                "exemptionCategory": "Waiver",
+                                                "displayName": "[concat('SWX Sentinel - Storage Account exemption: ', parameters('excludeResources')[copyIndex()])]",
+                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time.",
+                                                "resourceSelectors": [
+                                                    {
+                                                        "name": "resourceSelector",
+                                                        "selectors": [
+                                                            {
+                                                                "kind": "resourceWithoutLocation",
+                                                                "in": "[array(parameters('excludeResources')[copyIndex()])]"
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                "parameters": {
+                                    "excludeResources": { "value": "[parameters('excludeStorageResources')]" },
+                                    "storageAssignName": { "value": "[variables('storageAssignName')]" }
+                                }
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('storageAssignName'))]"
+                            ]
+                        },
 
                         {
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureSqlDatabase')]",
@@ -451,7 +625,7 @@
                             "apiVersion": "2021-06-01",
                             "name": "[variables('sqlPolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for SQL Database",
+                                "displayName": "SWX Sentinel - Deploy diagnostic settings for SQL Database",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -526,7 +700,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - SQL Database diagnostic settings",
+                                "displayName": "SWX Sentinel - SQL Database diagnostic settings",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('sqlPolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -562,14 +736,72 @@
                             "dependsOn": [
                                 "[guid(variables('sqlAssignName'), variables('contributorRoleId'))]"
                             ]
+                        },
+                        {
+                            "condition": "[and(contains(parameters('enableDiagnosticPolicies'), 'AzureSqlDatabase'), greater(length(parameters('excludeSqlResources')), 0))]",
+                            "type": "Microsoft.Resources/deployments",
+                            "apiVersion": "2021-04-01",
+                            "name": "sqlExemptionsDeployment",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "mode": "Incremental",
+                                "expressionEvaluationOptions": { "scope": "inner" },
+                                "template": {
+                                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                                    "contentVersion": "1.0.0.0",
+                                    "parameters": {
+                                        "excludeResources": { "type": "array" },
+                                        "sqlAssignName": { "type": "string" }
+                                    },
+                                    "resources": [
+                                        {
+                                            "copy": {
+                                                "name": "sqlExemptionsCopy",
+                                                "count": "[length(parameters('excludeResources'))]"
+                                            },
+                                            "type": "Microsoft.Authorization/policyExemptions",
+                                            "apiVersion": "2022-07-01-preview",
+                                            "name": "[concat('swx-sql-exempt-', parameters('excludeResources')[copyIndex()])]",
+                                            "properties": {
+                                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('sqlAssignName'))]",
+                                                "exemptionCategory": "Waiver",
+                                                "displayName": "[concat('SWX Sentinel - SQL Database exemption: ', parameters('excludeResources')[copyIndex()])]",
+                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time.",
+                                                "resourceSelectors": [
+                                                    {
+                                                        "name": "resourceSelector",
+                                                        "selectors": [
+                                                            {
+                                                                "kind": "resourceWithoutLocation",
+                                                                "in": "[array(parameters('excludeResources')[copyIndex()])]"
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                "parameters": {
+                                    "excludeResources": { "value": "[parameters('excludeSqlResources')]" },
+                                    "sqlAssignName": { "value": "[variables('sqlAssignName')]" }
+                                }
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('sqlAssignName'))]"
+                            ]
                         }
 
                     ]
                 },
                 "parameters": {
-                    "workspaceId":               { "value": "[variables('workspaceId')]" },
-                    "location":                  { "value": "[parameters('location')]" },
-                    "enableDiagnosticPolicies":  { "value": "[parameters('enableDiagnosticPolicies')]" }
+                    "workspaceId":                { "value": "[variables('workspaceId')]" },
+                    "location":                   { "value": "[parameters('location')]" },
+                    "enableDiagnosticPolicies":   { "value": "[parameters('enableDiagnosticPolicies')]" },
+                    "excludeKeyVaultResources":   { "value": "[parameters('excludeKeyVaultResources')]" },
+                    "excludeNsgResources":        { "value": "[parameters('excludeNsgResources')]" },
+                    "excludeStorageResources":    { "value": "[parameters('excludeStorageResources')]" },
+                    "excludeSqlResources":        { "value": "[parameters('excludeSqlResources')]" }
                 }
             }
         }
