@@ -8,3 +8,5 @@ a Quick deployment of Azure policies to stream diagnostic settings to a log anal
 An exclusion box for each resource is present during deployment for any resources which do not need diagnostic settings streamed.
 
 A LAW textbox is also present during deployment, please input the name of the log analytics workspace you want the diagnostic settings streamed to in this.
+
+User deploying this in the environment MUST be an owner over the subscription to deploy successfully. 
