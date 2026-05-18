@@ -82,6 +82,63 @@
                             "required": false
                         },
                         "visible": true
+                    },
+                    {
+                        "name": "infoBoxExclusions",
+                        "type": "Microsoft.Common.InfoBox",
+                        "visible": "[greater(length(steps('diagnosticPolicies').enableDiagnosticPolicies), 0)]",
+                        "options": {
+                            "icon": "Info",
+                            "text": "Optionally enter resource names to exclude from the policy for each selected resource type. Excluded resources will have a Policy Exemption created so they are skipped — all future resources of that type will still have diagnostic settings applied automatically. Enter exact resource names, one per line."
+                        }
+                    },
+                    {
+                        "name": "excludeKeyVaultResources",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Key Vault resources to exclude (one per line)",
+                        "placeholder": "my-keyvault-name",
+                        "toolTip": "Enter the exact resource names of any Key Vaults you want to exclude from the diagnostic settings policy, one per line.",
+                        "multiLine": true,
+                        "constraints": {
+                            "required": false
+                        },
+                        "visible": "[contains(steps('diagnosticPolicies').enableDiagnosticPolicies, 'AzureKeyVault')]"
+                    },
+                    {
+                        "name": "excludeNsgResources",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "NSG resources to exclude (one per line)",
+                        "placeholder": "my-nsg-name",
+                        "toolTip": "Enter the exact resource names of any NSGs you want to exclude from the diagnostic settings policy, one per line.",
+                        "multiLine": true,
+                        "constraints": {
+                            "required": false
+                        },
+                        "visible": "[contains(steps('diagnosticPolicies').enableDiagnosticPolicies, 'AzureNetworkSecurityGroup')]"
+                    },
+                    {
+                        "name": "excludeStorageResources",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Storage Account resources to exclude (one per line)",
+                        "placeholder": "mystorageaccountname",
+                        "toolTip": "Enter the exact resource names of any Storage Accounts you want to exclude from the diagnostic settings policy, one per line.",
+                        "multiLine": true,
+                        "constraints": {
+                            "required": false
+                        },
+                        "visible": "[contains(steps('diagnosticPolicies').enableDiagnosticPolicies, 'AzureStorageAccount')]"
+                    },
+                    {
+                        "name": "excludeSqlResources",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "SQL Database resources to exclude (one per line)",
+                        "placeholder": "my-sql-db-name",
+                        "toolTip": "Enter the exact resource names of any SQL Databases you want to exclude from the diagnostic settings policy, one per line.",
+                        "multiLine": true,
+                        "constraints": {
+                            "required": false
+                        },
+                        "visible": "[contains(steps('diagnosticPolicies').enableDiagnosticPolicies, 'AzureSqlDatabase')]"
                     }
                 ]
             }
@@ -89,7 +146,11 @@
         "outputs": {
             "workspaceName": "[basics('workspaceName')]",
             "location": "[location()]",
-            "enableDiagnosticPolicies": "[steps('diagnosticPolicies').enableDiagnosticPolicies]"
+            "enableDiagnosticPolicies": "[steps('diagnosticPolicies').enableDiagnosticPolicies]",
+            "excludeKeyVaultResources": "[split(if(empty(trim(steps('diagnosticPolicies').excludeKeyVaultResources)), '', trim(steps('diagnosticPolicies').excludeKeyVaultResources)), '\n')]",
+            "excludeNsgResources": "[split(if(empty(trim(steps('diagnosticPolicies').excludeNsgResources)), '', trim(steps('diagnosticPolicies').excludeNsgResources)), '\n')]",
+            "excludeStorageResources": "[split(if(empty(trim(steps('diagnosticPolicies').excludeStorageResources)), '', trim(steps('diagnosticPolicies').excludeStorageResources)), '\n')]",
+            "excludeSqlResources": "[split(if(empty(trim(steps('diagnosticPolicies').excludeSqlResources)), '', trim(steps('diagnosticPolicies').excludeSqlResources)), '\n')]"
         }
     }
 }
