@@ -13,24 +13,28 @@
             "defaultValue": []
         },
         "excludeKeyVaultResources": {
-            "type": "array",
-            "defaultValue": []
+            "type": "string",
+            "defaultValue": ""
         },
         "excludeNsgResources": {
-            "type": "array",
-            "defaultValue": []
+            "type": "string",
+            "defaultValue": ""
         },
         "excludeStorageResources": {
-            "type": "array",
-            "defaultValue": []
+            "type": "string",
+            "defaultValue": ""
         },
         "excludeSqlResources": {
-            "type": "array",
-            "defaultValue": []
+            "type": "string",
+            "defaultValue": ""
         }
     },
     "variables": {
-        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
+        "excludeKeyVaultArray": "[if(empty(parameters('excludeKeyVaultResources')), json('[]'), split(parameters('excludeKeyVaultResources'), ','))]",
+        "excludeNsgArray": "[if(empty(parameters('excludeNsgResources')), json('[]'), split(parameters('excludeNsgResources'), ','))]",
+        "excludeStorageArray": "[if(empty(parameters('excludeStorageResources')), json('[]'), split(parameters('excludeStorageResources'), ','))]",
+        "excludeSqlArray": "[if(empty(parameters('excludeSqlResources')), json('[]'), split(parameters('excludeSqlResources'), ','))]"
     },
     "resources": [
         {
@@ -48,27 +52,40 @@
                     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
                     "parameters": {
-                        "workspaceId": { "type": "string" },
-                        "location": { "type": "string" },
-                        "enableDiagnosticPolicies": { "type": "array" },
-                        "excludeKeyVaultResources": { "type": "array" },
-                        "excludeNsgResources": { "type": "array" },
-                        "excludeStorageResources": { "type": "array" },
-                        "excludeSqlResources": { "type": "array" }
+                        "workspaceId": {
+                            "type": "string"
+                        },
+                        "location": {
+                            "type": "string"
+                        },
+                        "enableDiagnosticPolicies": {
+                            "type": "array"
+                        },
+                        "excludeKeyVaultResources": {
+                            "type": "array"
+                        },
+                        "excludeNsgResources": {
+                            "type": "array"
+                        },
+                        "excludeStorageResources": {
+                            "type": "array"
+                        },
+                        "excludeSqlResources": {
+                            "type": "array"
+                        }
                     },
                     "variables": {
                         "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
-                        "kvPolicyName":      "[guid(subscription().id, 'SWX-sentinel-kv-diag-policy')]",
-                        "nsgPolicyName":     "[guid(subscription().id, 'SWX-sentinel-nsg-diag-policy')]",
+                        "kvPolicyName": "[guid(subscription().id, 'SWX-sentinel-kv-diag-policy')]",
+                        "nsgPolicyName": "[guid(subscription().id, 'SWX-sentinel-nsg-diag-policy')]",
                         "storagePolicyName": "[guid(subscription().id, 'SWX-sentinel-storage-diag-policy')]",
-                        "sqlPolicyName":     "[guid(subscription().id, 'SWX-sentinel-sql-diag-policy')]",
-                        "kvAssignName":      "[guid(subscription().id, 'SWX-sentinel-kv-diag-assign')]",
-                        "nsgAssignName":     "[guid(subscription().id, 'SWX-sentinel-nsg-diag-assign')]",
+                        "sqlPolicyName": "[guid(subscription().id, 'SWX-sentinel-sql-diag-policy')]",
+                        "kvAssignName": "[guid(subscription().id, 'SWX-sentinel-kv-diag-assign')]",
+                        "nsgAssignName": "[guid(subscription().id, 'SWX-sentinel-nsg-diag-assign')]",
                         "storageAssignName": "[guid(subscription().id, 'SWXsentinel-storage-diag-assign')]",
-                        "sqlAssignName":     "[guid(subscription().id, 'SWX-sentinel-sql-diag-assign')]"
+                        "sqlAssignName": "[guid(subscription().id, 'SWX-sentinel-sql-diag-assign')]"
                     },
                     "resources": [
-
                         {
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureKeyVault')]",
                             "type": "Microsoft.Authorization/policyDefinitions",
@@ -79,10 +96,18 @@
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
-                                    "workspaceId": { "type": "String", "metadata": { "displayName": "Log Analytics workspace ID" } }
+                                    "workspaceId": {
+                                        "type": "String",
+                                        "metadata": {
+                                            "displayName": "Log Analytics workspace ID"
+                                        }
+                                    }
                                 },
                                 "policyRule": {
-                                    "if": { "field": "type", "equals": "Microsoft.KeyVault/vaults" },
+                                    "if": {
+                                        "field": "type",
+                                        "equals": "Microsoft.KeyVault/vaults"
+                                    },
                                     "then": {
                                         "effect": "deployIfNotExists",
                                         "details": {
@@ -99,15 +124,23 @@
                                                 "properties": {
                                                     "mode": "incremental",
                                                     "parameters": {
-                                                        "resourceId":  { "value": "[[field('id')]" },
-                                                        "workspaceId": { "value": "[[parameters('workspaceId')]" }
+                                                        "resourceId": {
+                                                            "value": "[[field('id')]"
+                                                        },
+                                                        "workspaceId": {
+                                                            "value": "[[parameters('workspaceId')]"
+                                                        }
                                                     },
                                                     "template": {
                                                         "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                                                         "contentVersion": "1.0.0.0",
                                                         "parameters": {
-                                                            "resourceId":  { "type": "string" },
-                                                            "workspaceId": { "type": "string" }
+                                                            "resourceId": {
+                                                                "type": "string"
+                                                            },
+                                                            "workspaceId": {
+                                                                "type": "string"
+                                                            }
                                                         },
                                                         "resources": [
                                                             {
@@ -118,7 +151,14 @@
                                                                 "properties": {
                                                                     "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
-                                                                        { "category": "AuditEvent", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                        {
+                                                                            "category": "AuditEvent",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        }
                                                                     ],
                                                                     "metrics": []
                                                                 }
@@ -138,12 +178,16 @@
                             "apiVersion": "2022-06-01",
                             "name": "[variables('kvAssignName')]",
                             "location": "[parameters('location')]",
-                            "identity": { "type": "SystemAssigned" },
+                            "identity": {
+                                "type": "SystemAssigned"
+                            },
                             "properties": {
                                 "displayName": "SWX Sentinel - Key Vault diagnostic settings",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('kvPolicyName'))]",
                                 "parameters": {
-                                    "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                    "workspaceId": {
+                                        "value": "[parameters('workspaceId')]"
+                                    }
                                 }
                             },
                             "dependsOn": [
@@ -185,13 +229,19 @@
                             "location": "[parameters('location')]",
                             "properties": {
                                 "mode": "Incremental",
-                                "expressionEvaluationOptions": { "scope": "inner" },
+                                "expressionEvaluationOptions": {
+                                    "scope": "inner"
+                                },
                                 "template": {
                                     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
                                     "contentVersion": "1.0.0.0",
                                     "parameters": {
-                                        "excludeResources": { "type": "array" },
-                                        "kvAssignName": { "type": "string" }
+                                        "excludeResources": {
+                                            "type": "array"
+                                        },
+                                        "kvAssignName": {
+                                            "type": "string"
+                                        }
                                     },
                                     "resources": [
                                         {
@@ -223,15 +273,18 @@
                                     ]
                                 },
                                 "parameters": {
-                                    "excludeResources": { "value": "[parameters('excludeKeyVaultResources')]" },
-                                    "kvAssignName": { "value": "[variables('kvAssignName')]" }
+                                    "excludeResources": {
+                                        "value": "[parameters('excludeKeyVaultResources')]"
+                                    },
+                                    "kvAssignName": {
+                                        "value": "[variables('kvAssignName')]"
+                                    }
                                 }
                             },
                             "dependsOn": [
                                 "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('kvAssignName'))]"
                             ]
                         },
-
                         {
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureNetworkSecurityGroup')]",
                             "type": "Microsoft.Authorization/policyDefinitions",
@@ -242,10 +295,18 @@
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
-                                    "workspaceId": { "type": "String", "metadata": { "displayName": "Log Analytics workspace ID" } }
+                                    "workspaceId": {
+                                        "type": "String",
+                                        "metadata": {
+                                            "displayName": "Log Analytics workspace ID"
+                                        }
+                                    }
                                 },
                                 "policyRule": {
-                                    "if": { "field": "type", "equals": "Microsoft.Network/networkSecurityGroups" },
+                                    "if": {
+                                        "field": "type",
+                                        "equals": "Microsoft.Network/networkSecurityGroups"
+                                    },
                                     "then": {
                                         "effect": "deployIfNotExists",
                                         "details": {
@@ -262,15 +323,23 @@
                                                 "properties": {
                                                     "mode": "incremental",
                                                     "parameters": {
-                                                        "resourceId":  { "value": "[[field('id')]" },
-                                                        "workspaceId": { "value": "[[parameters('workspaceId')]" }
+                                                        "resourceId": {
+                                                            "value": "[[field('id')]"
+                                                        },
+                                                        "workspaceId": {
+                                                            "value": "[[parameters('workspaceId')]"
+                                                        }
                                                     },
                                                     "template": {
                                                         "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                                                         "contentVersion": "1.0.0.0",
                                                         "parameters": {
-                                                            "resourceId":  { "type": "string" },
-                                                            "workspaceId": { "type": "string" }
+                                                            "resourceId": {
+                                                                "type": "string"
+                                                            },
+                                                            "workspaceId": {
+                                                                "type": "string"
+                                                            }
                                                         },
                                                         "resources": [
                                                             {
@@ -281,8 +350,22 @@
                                                                 "properties": {
                                                                     "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
-                                                                        { "category": "NetworkSecurityGroupEvent",       "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "NetworkSecurityGroupRuleCounter", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                        {
+                                                                            "category": "NetworkSecurityGroupEvent",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "NetworkSecurityGroupRuleCounter",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        }
                                                                     ],
                                                                     "metrics": []
                                                                 }
@@ -302,12 +385,16 @@
                             "apiVersion": "2022-06-01",
                             "name": "[variables('nsgAssignName')]",
                             "location": "[parameters('location')]",
-                            "identity": { "type": "SystemAssigned" },
+                            "identity": {
+                                "type": "SystemAssigned"
+                            },
                             "properties": {
                                 "displayName": "SWX Sentinel - NSG diagnostic settings",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('nsgPolicyName'))]",
                                 "parameters": {
-                                    "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                    "workspaceId": {
+                                        "value": "[parameters('workspaceId')]"
+                                    }
                                 }
                             },
                             "dependsOn": [
@@ -349,13 +436,19 @@
                             "location": "[parameters('location')]",
                             "properties": {
                                 "mode": "Incremental",
-                                "expressionEvaluationOptions": { "scope": "inner" },
+                                "expressionEvaluationOptions": {
+                                    "scope": "inner"
+                                },
                                 "template": {
                                     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
                                     "contentVersion": "1.0.0.0",
                                     "parameters": {
-                                        "excludeResources": { "type": "array" },
-                                        "nsgAssignName": { "type": "string" }
+                                        "excludeResources": {
+                                            "type": "array"
+                                        },
+                                        "nsgAssignName": {
+                                            "type": "string"
+                                        }
                                     },
                                     "resources": [
                                         {
@@ -387,15 +480,18 @@
                                     ]
                                 },
                                 "parameters": {
-                                    "excludeResources": { "value": "[parameters('excludeNsgResources')]" },
-                                    "nsgAssignName": { "value": "[variables('nsgAssignName')]" }
+                                    "excludeResources": {
+                                        "value": "[parameters('excludeNsgResources')]"
+                                    },
+                                    "nsgAssignName": {
+                                        "value": "[variables('nsgAssignName')]"
+                                    }
                                 }
                             },
                             "dependsOn": [
                                 "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('nsgAssignName'))]"
                             ]
                         },
-
                         {
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureStorageAccount')]",
                             "type": "Microsoft.Authorization/policyDefinitions",
@@ -406,10 +502,18 @@
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
-                                    "workspaceId": { "type": "String", "metadata": { "displayName": "Log Analytics workspace ID" } }
+                                    "workspaceId": {
+                                        "type": "String",
+                                        "metadata": {
+                                            "displayName": "Log Analytics workspace ID"
+                                        }
+                                    }
                                 },
                                 "policyRule": {
-                                    "if": { "field": "type", "equals": "Microsoft.Storage/storageAccounts" },
+                                    "if": {
+                                        "field": "type",
+                                        "equals": "Microsoft.Storage/storageAccounts"
+                                    },
                                     "then": {
                                         "effect": "deployIfNotExists",
                                         "details": {
@@ -426,15 +530,23 @@
                                                 "properties": {
                                                     "mode": "incremental",
                                                     "parameters": {
-                                                        "resourceId":  { "value": "[[field('id')]" },
-                                                        "workspaceId": { "value": "[[parameters('workspaceId')]" }
+                                                        "resourceId": {
+                                                            "value": "[[field('id')]"
+                                                        },
+                                                        "workspaceId": {
+                                                            "value": "[[parameters('workspaceId')]"
+                                                        }
                                                     },
                                                     "template": {
                                                         "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                                                         "contentVersion": "1.0.0.0",
                                                         "parameters": {
-                                                            "resourceId":  { "type": "string" },
-                                                            "workspaceId": { "type": "string" }
+                                                            "resourceId": {
+                                                                "type": "string"
+                                                            },
+                                                            "workspaceId": {
+                                                                "type": "string"
+                                                            }
                                                         },
                                                         "resources": [
                                                             {
@@ -446,7 +558,14 @@
                                                                     "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [],
                                                                     "metrics": [
-                                                                        { "category": "Transaction", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                        {
+                                                                            "category": "Transaction",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        }
                                                                     ]
                                                                 }
                                                             },
@@ -458,9 +577,30 @@
                                                                 "properties": {
                                                                     "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
-                                                                        { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "StorageDelete", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                        {
+                                                                            "category": "StorageRead",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "StorageWrite",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "StorageDelete",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        }
                                                                     ],
                                                                     "metrics": []
                                                                 }
@@ -473,9 +613,30 @@
                                                                 "properties": {
                                                                     "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
-                                                                        { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "StorageDelete", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                        {
+                                                                            "category": "StorageRead",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "StorageWrite",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "StorageDelete",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        }
                                                                     ],
                                                                     "metrics": []
                                                                 }
@@ -488,9 +649,30 @@
                                                                 "properties": {
                                                                     "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
-                                                                        { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "StorageDelete", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                        {
+                                                                            "category": "StorageRead",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "StorageWrite",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "StorageDelete",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        }
                                                                     ],
                                                                     "metrics": []
                                                                 }
@@ -503,9 +685,30 @@
                                                                 "properties": {
                                                                     "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
-                                                                        { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "StorageDelete", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                        {
+                                                                            "category": "StorageRead",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "StorageWrite",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "StorageDelete",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        }
                                                                     ],
                                                                     "metrics": []
                                                                 }
@@ -525,12 +728,16 @@
                             "apiVersion": "2022-06-01",
                             "name": "[variables('storageAssignName')]",
                             "location": "[parameters('location')]",
-                            "identity": { "type": "SystemAssigned" },
+                            "identity": {
+                                "type": "SystemAssigned"
+                            },
                             "properties": {
                                 "displayName": "SWX Sentinel - Storage Account diagnostic settings",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('storagePolicyName'))]",
                                 "parameters": {
-                                    "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                    "workspaceId": {
+                                        "value": "[parameters('workspaceId')]"
+                                    }
                                 }
                             },
                             "dependsOn": [
@@ -572,13 +779,19 @@
                             "location": "[parameters('location')]",
                             "properties": {
                                 "mode": "Incremental",
-                                "expressionEvaluationOptions": { "scope": "inner" },
+                                "expressionEvaluationOptions": {
+                                    "scope": "inner"
+                                },
                                 "template": {
                                     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
                                     "contentVersion": "1.0.0.0",
                                     "parameters": {
-                                        "excludeResources": { "type": "array" },
-                                        "storageAssignName": { "type": "string" }
+                                        "excludeResources": {
+                                            "type": "array"
+                                        },
+                                        "storageAssignName": {
+                                            "type": "string"
+                                        }
                                     },
                                     "resources": [
                                         {
@@ -610,15 +823,18 @@
                                     ]
                                 },
                                 "parameters": {
-                                    "excludeResources": { "value": "[parameters('excludeStorageResources')]" },
-                                    "storageAssignName": { "value": "[variables('storageAssignName')]" }
+                                    "excludeResources": {
+                                        "value": "[parameters('excludeStorageResources')]"
+                                    },
+                                    "storageAssignName": {
+                                        "value": "[variables('storageAssignName')]"
+                                    }
                                 }
                             },
                             "dependsOn": [
                                 "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('storageAssignName'))]"
                             ]
                         },
-
                         {
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureSqlDatabase')]",
                             "type": "Microsoft.Authorization/policyDefinitions",
@@ -629,13 +845,24 @@
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
-                                    "workspaceId": { "type": "String", "metadata": { "displayName": "Log Analytics workspace ID" } }
+                                    "workspaceId": {
+                                        "type": "String",
+                                        "metadata": {
+                                            "displayName": "Log Analytics workspace ID"
+                                        }
+                                    }
                                 },
                                 "policyRule": {
                                     "if": {
                                         "allOf": [
-                                            { "field": "type", "equals": "Microsoft.Sql/servers/databases" },
-                                            { "field": "name", "notEquals": "master" }
+                                            {
+                                                "field": "type",
+                                                "equals": "Microsoft.Sql/servers/databases"
+                                            },
+                                            {
+                                                "field": "name",
+                                                "notEquals": "master"
+                                            }
                                         ]
                                     },
                                     "then": {
@@ -654,15 +881,23 @@
                                                 "properties": {
                                                     "mode": "incremental",
                                                     "parameters": {
-                                                        "resourceId":  { "value": "[[field('id')]" },
-                                                        "workspaceId": { "value": "[[parameters('workspaceId')]" }
+                                                        "resourceId": {
+                                                            "value": "[[field('id')]"
+                                                        },
+                                                        "workspaceId": {
+                                                            "value": "[[parameters('workspaceId')]"
+                                                        }
                                                     },
                                                     "template": {
                                                         "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                                                         "contentVersion": "1.0.0.0",
                                                         "parameters": {
-                                                            "resourceId":  { "type": "string" },
-                                                            "workspaceId": { "type": "string" }
+                                                            "resourceId": {
+                                                                "type": "string"
+                                                            },
+                                                            "workspaceId": {
+                                                                "type": "string"
+                                                            }
                                                         },
                                                         "resources": [
                                                             {
@@ -673,12 +908,54 @@
                                                                 "properties": {
                                                                     "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
-                                                                        { "category": "SQLSecurityAuditEvents", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "SQLInsights",            "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "Errors",                 "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "Timeouts",               "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "Blocks",                 "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                                                        { "category": "Deadlocks",              "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                        {
+                                                                            "category": "SQLSecurityAuditEvents",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "SQLInsights",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "Errors",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "Timeouts",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "Blocks",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "category": "Deadlocks",
+                                                                            "enabled": true,
+                                                                            "retentionPolicy": {
+                                                                                "days": 0,
+                                                                                "enabled": false
+                                                                            }
+                                                                        }
                                                                     ],
                                                                     "metrics": []
                                                                 }
@@ -698,12 +975,16 @@
                             "apiVersion": "2022-06-01",
                             "name": "[variables('sqlAssignName')]",
                             "location": "[parameters('location')]",
-                            "identity": { "type": "SystemAssigned" },
+                            "identity": {
+                                "type": "SystemAssigned"
+                            },
                             "properties": {
                                 "displayName": "SWX Sentinel - SQL Database diagnostic settings",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('sqlPolicyName'))]",
                                 "parameters": {
-                                    "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                    "workspaceId": {
+                                        "value": "[parameters('workspaceId')]"
+                                    }
                                 }
                             },
                             "dependsOn": [
@@ -745,13 +1026,19 @@
                             "location": "[parameters('location')]",
                             "properties": {
                                 "mode": "Incremental",
-                                "expressionEvaluationOptions": { "scope": "inner" },
+                                "expressionEvaluationOptions": {
+                                    "scope": "inner"
+                                },
                                 "template": {
                                     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
                                     "contentVersion": "1.0.0.0",
                                     "parameters": {
-                                        "excludeResources": { "type": "array" },
-                                        "sqlAssignName": { "type": "string" }
+                                        "excludeResources": {
+                                            "type": "array"
+                                        },
+                                        "sqlAssignName": {
+                                            "type": "string"
+                                        }
                                     },
                                     "resources": [
                                         {
@@ -783,25 +1070,42 @@
                                     ]
                                 },
                                 "parameters": {
-                                    "excludeResources": { "value": "[parameters('excludeSqlResources')]" },
-                                    "sqlAssignName": { "value": "[variables('sqlAssignName')]" }
+                                    "excludeResources": {
+                                        "value": "[parameters('excludeSqlResources')]"
+                                    },
+                                    "sqlAssignName": {
+                                        "value": "[variables('sqlAssignName')]"
+                                    }
                                 }
                             },
                             "dependsOn": [
                                 "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('sqlAssignName'))]"
                             ]
                         }
-
                     ]
                 },
                 "parameters": {
-                    "workspaceId":                { "value": "[variables('workspaceId')]" },
-                    "location":                   { "value": "[parameters('location')]" },
-                    "enableDiagnosticPolicies":   { "value": "[parameters('enableDiagnosticPolicies')]" },
-                    "excludeKeyVaultResources":   { "value": "[parameters('excludeKeyVaultResources')]" },
-                    "excludeNsgResources":        { "value": "[parameters('excludeNsgResources')]" },
-                    "excludeStorageResources":    { "value": "[parameters('excludeStorageResources')]" },
-                    "excludeSqlResources":        { "value": "[parameters('excludeSqlResources')]" }
+                    "workspaceId": {
+                        "value": "[variables('workspaceId')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "enableDiagnosticPolicies": {
+                        "value": "[parameters('enableDiagnosticPolicies')]"
+                    },
+                    "excludeKeyVaultResources": {
+                        "value": "[variables('excludeKeyVaultArray')]"
+                    },
+                    "excludeNsgResources": {
+                        "value": "[variables('excludeNsgArray')]"
+                    },
+                    "excludeStorageResources": {
+                        "value": "[variables('excludeStorageArray')]"
+                    },
+                    "excludeSqlResources": {
+                        "value": "[variables('excludeSqlArray')]"
+                    }
                 }
             }
         }
