@@ -89,16 +89,16 @@
                         "visible": "[greater(length(steps('diagnosticPolicies').enableDiagnosticPolicies), 0)]",
                         "options": {
                             "icon": "Info",
-                            "text": "Optionally enter resource names to exclude from the policy for each selected resource type. Excluded resources will have a Policy Exemption created so they are skipped \u2014 all future resources of that type will still have diagnostic settings applied automatically. Enter exact resource names, one per line."
+                            "text": "Optionally enter resource names to exclude from the policy for each selected resource type. Excluded resources will have a Policy Exemption created so they are skipped. All future resources of that type will still have diagnostic settings applied automatically. Enter exact resource names separated by a comma e.g. my-keyvault-1,my-keyvault-2"
                         }
                     },
                     {
                         "name": "excludeKeyVaultResources",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Key Vault resources to exclude (one per line)",
-                        "placeholder": "my-keyvault-name",
-                        "toolTip": "Enter the exact resource names of any Key Vaults you want to exclude from the diagnostic settings policy, one per line.",
-                        "multiLine": true,
+                        "label": "Key Vault resources to exclude (comma separated)",
+                        "placeholder": "my-keyvault-1,my-keyvault-2",
+                        "defaultValue": "",
+                        "toolTip": "Enter the exact resource names of any Key Vaults you want to exclude, separated by commas.",
                         "constraints": {
                             "required": false
                         },
@@ -107,10 +107,10 @@
                     {
                         "name": "excludeNsgResources",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "NSG resources to exclude (one per line)",
-                        "placeholder": "my-nsg-name",
-                        "toolTip": "Enter the exact resource names of any NSGs you want to exclude from the diagnostic settings policy, one per line.",
-                        "multiLine": true,
+                        "label": "NSG resources to exclude (comma separated)",
+                        "placeholder": "my-nsg-1,my-nsg-2",
+                        "defaultValue": "",
+                        "toolTip": "Enter the exact resource names of any NSGs you want to exclude, separated by commas.",
                         "constraints": {
                             "required": false
                         },
@@ -119,10 +119,10 @@
                     {
                         "name": "excludeStorageResources",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Storage Account resources to exclude (one per line)",
-                        "placeholder": "mystorageaccountname",
-                        "toolTip": "Enter the exact resource names of any Storage Accounts you want to exclude from the diagnostic settings policy, one per line.",
-                        "multiLine": true,
+                        "label": "Storage Account resources to exclude (comma separated)",
+                        "placeholder": "mystorageaccount1,mystorageaccount2",
+                        "defaultValue": "",
+                        "toolTip": "Enter the exact resource names of any Storage Accounts you want to exclude, separated by commas.",
                         "constraints": {
                             "required": false
                         },
@@ -131,10 +131,10 @@
                     {
                         "name": "excludeSqlResources",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "SQL Database resources to exclude (one per line)",
-                        "placeholder": "my-sql-db-name",
-                        "toolTip": "Enter the exact resource names of any SQL Databases you want to exclude from the diagnostic settings policy, one per line.",
-                        "multiLine": true,
+                        "label": "SQL Database resources to exclude (comma separated)",
+                        "placeholder": "my-sql-db-1,my-sql-db-2",
+                        "defaultValue": "",
+                        "toolTip": "Enter the exact resource names of any SQL Databases you want to exclude, separated by commas.",
                         "constraints": {
                             "required": false
                         },
@@ -147,10 +147,10 @@
             "workspaceName": "[basics('workspaceName')]",
             "location": "[location()]",
             "enableDiagnosticPolicies": "[steps('diagnosticPolicies').enableDiagnosticPolicies]",
-            "excludeKeyVaultResources": "[if(empty(steps('diagnosticPolicies').excludeKeyVaultResources), parse('[]'), split(steps('diagnosticPolicies').excludeKeyVaultResources, '\n'))]",
-            "excludeNsgResources": "[if(empty(steps('diagnosticPolicies').excludeNsgResources), parse('[]'), split(steps('diagnosticPolicies').excludeNsgResources, '\n'))]",
-            "excludeStorageResources": "[if(empty(steps('diagnosticPolicies').excludeStorageResources), parse('[]'), split(steps('diagnosticPolicies').excludeStorageResources, '\n'))]",
-            "excludeSqlResources": "[if(empty(steps('diagnosticPolicies').excludeSqlResources), parse('[]'), split(steps('diagnosticPolicies').excludeSqlResources, '\n'))]"
+            "excludeKeyVaultResources": "[steps('diagnosticPolicies').excludeKeyVaultResources]",
+            "excludeNsgResources": "[steps('diagnosticPolicies').excludeNsgResources]",
+            "excludeStorageResources": "[steps('diagnosticPolicies').excludeStorageResources]",
+            "excludeSqlResources": "[steps('diagnosticPolicies').excludeSqlResources]"
         }
     }
 }
