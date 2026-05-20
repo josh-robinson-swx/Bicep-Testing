@@ -776,18 +776,82 @@
                                     "resources": [
                                         {
                                             "copy": {
-                                                "name": "storageExemptionsCopy",
+                                                "name": "storageAccountCopy",
                                                 "count": "[length(parameters('excludeResources'))]"
                                             },
-                                            "type": "Microsoft.Authorization/policyExemptions",
-                                            "apiVersion": "2022-07-01-preview",
-                                            "name": "[concat('swx-storage-exempt-', copyIndex())]",
-                                            "scope": "[parameters('excludeResources')[copyIndex()]]",
+                                            "type": "Microsoft.Resources/deployments",
+                                            "apiVersion": "2021-04-01",
+                                            "name": "[concat('swx-storage-exempt-deployment-', copyIndex())]",
+                                            "location": "[deployment().location]",
                                             "properties": {
-                                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('storageAssignName'))]",
-                                                "exemptionCategory": "Waiver",
-                                                "displayName": "[concat('SWX Sentinel - Storage Account exemption: ', parameters('excludeResources')[copyIndex()])]",
-                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time."
+                                                "mode": "Incremental",
+                                                "expressionEvaluationOptions": {
+                                                    "scope": "inner"
+                                                },
+                                                "template": {
+                                                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                                                    "contentVersion": "1.0.0.0",
+                                                    "parameters": {
+                                                        "storageResourceId": {
+                                                            "type": "string"
+                                                        },
+                                                        "storageAssignName": {
+                                                            "type": "string"
+                                                        },
+                                                        "index": {
+                                                            "type": "int"
+                                                        }
+                                                    },
+                                                    "variables": {
+                                                        "subServices": [
+                                                            "/blobServices/default",
+                                                            "/queueServices/default",
+                                                            "/tableServices/default",
+                                                            "/fileServices/default"
+                                                        ]
+                                                    },
+                                                    "resources": [
+                                                        {
+                                                            "type": "Microsoft.Authorization/policyExemptions",
+                                                            "apiVersion": "2022-07-01-preview",
+                                                            "name": "[concat('swx-storage-exempt-', parameters('index'))]",
+                                                            "scope": "[parameters('storageResourceId')]",
+                                                            "properties": {
+                                                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('storageAssignName'))]",
+                                                                "exemptionCategory": "Waiver",
+                                                                "displayName": "[concat('SWX Sentinel - Storage Account exemption: ', parameters('storageResourceId'))]",
+                                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time."
+                                                            }
+                                                        },
+                                                        {
+                                                            "copy": {
+                                                                "name": "subServiceExemptionsCopy",
+                                                                "count": "[length(variables('subServices'))]"
+                                                            },
+                                                            "type": "Microsoft.Authorization/policyExemptions",
+                                                            "apiVersion": "2022-07-01-preview",
+                                                            "name": "[concat('swx-storage-exempt-', parameters('index'), '-sub-', copyIndex())]",
+                                                            "scope": "[concat(parameters('storageResourceId'), variables('subServices')[copyIndex()])]",
+                                                            "properties": {
+                                                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('storageAssignName'))]",
+                                                                "exemptionCategory": "Waiver",
+                                                                "displayName": "[concat('SWX Sentinel - Storage Account sub-service exemption: ', parameters('storageResourceId'), variables('subServices')[copyIndex()])]",
+                                                                "description": "Sub-service excluded from Sentinel diagnostic settings policy at deployment time."
+                                                            }
+                                                        }
+                                                    ]
+                                                },
+                                                "parameters": {
+                                                    "storageResourceId": {
+                                                        "value": "[parameters('excludeResources')[copyIndex()]]"
+                                                    },
+                                                    "storageAssignName": {
+                                                        "value": "[parameters('storageAssignName')]"
+                                                    },
+                                                    "index": {
+                                                        "value": "[copyIndex()]"
+                                                    }
+                                                }
                                             }
                                         }
                                     ]
