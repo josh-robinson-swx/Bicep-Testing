@@ -251,23 +251,13 @@
                                             },
                                             "type": "Microsoft.Authorization/policyExemptions",
                                             "apiVersion": "2022-07-01-preview",
-                                            "name": "[concat('swx-kv-exempt-', parameters('excludeResources')[copyIndex()])]",
+                                            "name": "[concat('swx-kv-exempt-', copyIndex())]",
+                                            "scope": "[parameters('excludeResources')[copyIndex()]]",
                                             "properties": {
                                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('kvAssignName'))]",
                                                 "exemptionCategory": "Waiver",
                                                 "displayName": "[concat('SWX Sentinel - Key Vault exemption: ', parameters('excludeResources')[copyIndex()])]",
-                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time.",
-                                                "resourceSelectors": [
-                                                    {
-                                                        "name": "resourceSelector",
-                                                        "selectors": [
-                                                            {
-                                                                "kind": "resourceWithoutLocation",
-                                                                "in": "[array(parameters('excludeResources')[copyIndex()])]"
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
+                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time."
                                             }
                                         }
                                     ]
@@ -458,23 +448,13 @@
                                             },
                                             "type": "Microsoft.Authorization/policyExemptions",
                                             "apiVersion": "2022-07-01-preview",
-                                            "name": "[concat('swx-nsg-exempt-', parameters('excludeResources')[copyIndex()])]",
+                                            "name": "[concat('swx-nsg-exempt-', copyIndex())]",
+                                            "scope": "[parameters('excludeResources')[copyIndex()]]",
                                             "properties": {
                                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('nsgAssignName'))]",
                                                 "exemptionCategory": "Waiver",
                                                 "displayName": "[concat('SWX Sentinel - NSG exemption: ', parameters('excludeResources')[copyIndex()])]",
-                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time.",
-                                                "resourceSelectors": [
-                                                    {
-                                                        "name": "resourceSelector",
-                                                        "selectors": [
-                                                            {
-                                                                "kind": "resourceWithoutLocation",
-                                                                "in": "[array(parameters('excludeResources')[copyIndex()])]"
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
+                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time."
                                             }
                                         }
                                     ]
@@ -801,23 +781,13 @@
                                             },
                                             "type": "Microsoft.Authorization/policyExemptions",
                                             "apiVersion": "2022-07-01-preview",
-                                            "name": "[concat('swx-storage-exempt-', parameters('excludeResources')[copyIndex()])]",
+                                            "name": "[concat('swx-storage-exempt-', copyIndex())]",
+                                            "scope": "[parameters('excludeResources')[copyIndex()]]",
                                             "properties": {
                                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('storageAssignName'))]",
                                                 "exemptionCategory": "Waiver",
                                                 "displayName": "[concat('SWX Sentinel - Storage Account exemption: ', parameters('excludeResources')[copyIndex()])]",
-                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time.",
-                                                "resourceSelectors": [
-                                                    {
-                                                        "name": "resourceSelector",
-                                                        "selectors": [
-                                                            {
-                                                                "kind": "resourceWithoutLocation",
-                                                                "in": "[array(parameters('excludeResources')[copyIndex()])]"
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
+                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time."
                                             }
                                         }
                                     ]
@@ -1048,23 +1018,13 @@
                                             },
                                             "type": "Microsoft.Authorization/policyExemptions",
                                             "apiVersion": "2022-07-01-preview",
-                                            "name": "[concat('swx-sql-exempt-', parameters('excludeResources')[copyIndex()])]",
+                                            "name": "[concat('swx-sql-exempt-', copyIndex())]",
+                                            "scope": "[parameters('excludeResources')[copyIndex()]]",
                                             "properties": {
                                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', parameters('sqlAssignName'))]",
                                                 "exemptionCategory": "Waiver",
                                                 "displayName": "[concat('SWX Sentinel - SQL Database exemption: ', parameters('excludeResources')[copyIndex()])]",
-                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time.",
-                                                "resourceSelectors": [
-                                                    {
-                                                        "name": "resourceSelector",
-                                                        "selectors": [
-                                                            {
-                                                                "kind": "resourceWithoutLocation",
-                                                                "in": "[array(parameters('excludeResources')[copyIndex()])]"
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
+                                                "description": "Resource excluded from Sentinel diagnostic settings policy at deployment time."
                                             }
                                         }
                                     ]
