@@ -89,16 +89,16 @@
                         "visible": "[greater(length(steps('diagnosticPolicies').enableDiagnosticPolicies), 0)]",
                         "options": {
                             "icon": "Info",
-                            "text": "Optionally enter resource names to exclude from the policy for each selected resource type. Excluded resources will have a Policy Exemption created so they are skipped. All future resources of that type will still have diagnostic settings applied automatically. Enter exact resource names separated by a comma e.g. my-keyvault-1,my-keyvault-2"
+                            "text": "Optionally enter full resource IDs to exclude from the policy for each selected resource type. Excluded resources will have a Policy Exemption created so they are skipped by remediation. All future resources of that type will still have diagnostic settings applied automatically. Enter full resource IDs separated by a comma e.g. /subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.KeyVault/vaults/my-kv-1,/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.KeyVault/vaults/my-kv-2"
                         }
                     },
                     {
                         "name": "excludeKeyVaultResources",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Key Vault resources to exclude (comma separated)",
-                        "placeholder": "my-keyvault-1,my-keyvault-2",
+                        "label": "Key Vault resources to exclude (comma separated full resource IDs)",
+                        "placeholder": "/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.KeyVault/vaults/my-kv-1,/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.KeyVault/vaults/my-kv-2",
                         "defaultValue": "",
-                        "toolTip": "Enter the exact resource names of any Key Vaults you want to exclude, separated by commas.",
+                        "toolTip": "Enter the full resource IDs of any Key Vaults you want to exclude, separated by commas. Example: /subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.KeyVault/vaults/my-kv",
                         "constraints": {
                             "required": false
                         },
@@ -107,10 +107,10 @@
                     {
                         "name": "excludeNsgResources",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "NSG resources to exclude (comma separated)",
-                        "placeholder": "my-nsg-1,my-nsg-2",
+                        "label": "NSG resources to exclude (comma separated full resource IDs)",
+                        "placeholder": "/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Network/networkSecurityGroups/my-nsg-1,/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Network/networkSecurityGroups/my-nsg-2",
                         "defaultValue": "",
-                        "toolTip": "Enter the exact resource names of any NSGs you want to exclude, separated by commas.",
+                        "toolTip": "Enter the full resource IDs of any NSGs you want to exclude, separated by commas. Example: /subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Network/networkSecurityGroups/my-nsg",
                         "constraints": {
                             "required": false
                         },
@@ -119,10 +119,10 @@
                     {
                         "name": "excludeStorageResources",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Storage Account resources to exclude (comma separated)",
-                        "placeholder": "mystorageaccount1,mystorageaccount2",
+                        "label": "Storage Account resources to exclude (comma separated full resource IDs)",
+                        "placeholder": "/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Storage/storageAccounts/mystorage1,/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Storage/storageAccounts/mystorage2",
                         "defaultValue": "",
-                        "toolTip": "Enter the exact resource names of any Storage Accounts you want to exclude, separated by commas.",
+                        "toolTip": "Enter the full resource IDs of any Storage Accounts you want to exclude, separated by commas. Example: /subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Storage/storageAccounts/mystorage",
                         "constraints": {
                             "required": false
                         },
@@ -131,10 +131,10 @@
                     {
                         "name": "excludeSqlResources",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "SQL Database resources to exclude (comma separated)",
-                        "placeholder": "my-sql-db-1,my-sql-db-2",
+                        "label": "SQL Database resources to exclude (comma separated full resource IDs)",
+                        "placeholder": "/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Sql/servers/my-server/databases/my-db-1,/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Sql/servers/my-server/databases/my-db-2",
                         "defaultValue": "",
-                        "toolTip": "Enter the exact resource names of any SQL Databases you want to exclude, separated by commas.",
+                        "toolTip": "Enter the full resource IDs of any SQL Databases you want to exclude, separated by commas. Example: /subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Sql/servers/my-server/databases/my-db",
                         "constraints": {
                             "required": false
                         },
